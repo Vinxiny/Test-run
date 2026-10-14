@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="screen-orientation" content="landscape" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Abyss Clover - Co-op action adventure into Hell. LAN multiplayer PWA." />
+  <title>Abyss Clover – Descent</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <!-- Loading -->
+  <div id="loading-screen">
+    <div class="logo">ABYSS CLOVER</div>
+    <div class="subtitle">Descent into Hell</div>
+    <div class="loader"></div>
+    <p id="loading-text">Awakening magic...</p>
+  </div>
+
+  
+  <!-- How to Play (clear instructions) -->
+  <div id="howto-screen" class="screen hidden">
+    <div class="lobby-panel" style="max-width:560px;max-height:90vh;overflow-y:auto;">
+      <h2 style="color:#fbbf24;text-align:center;">HOW TO PLAY</h2>
+      
+      <div style="text-align:left;font-size:0.92rem;line-height:1.55;">
+        <p><strong style="color:#fbbf24;">GOAL</strong><br>
+        Go deeper into Hell and survive. Defeat waves of demons. If your whole team dies at the same time → you restart.</p>
+
+        <p><strong style="color:#fbbf24;">CONTROLS (Phone)</strong><br>
+        • Left stick = Move<br>
+        • 👊 = Punch / Basic attack<br>
+        • 🔥 = Skill 1 &nbsp; 💥 = Skill 2 &nbsp; ⚡ = Ultimate<br>
+        • ⬆ = Jump<br>
+        • Rotate phone to landscape (required)</p>
+
+        <p><strong style="color:#fbbf24;">CONTROLS (Computer)</strong><br>
+        • WASD or Arrows = Move<br>
+        • 1 = Punch &nbsp; 2 / 3 / 4 = Skills &amp; Ultimate<br>
+        • Space = Jump</p>
+
+        <p><strong style="color:#fbbf24;">FIGHTING (not free)</strong><br>
+        Every power costs <strong>Mana</strong> (blue bar).<br>
+        Basic attack is almost free. Skills and Ultimate cost more.<br>
+        Mana slowly refills. Don’t spam Ultimates or you will run out.</p>
+
+        <p><strong style="color:#fbbf24;">TEAM RULES</strong><br>
+        • Each player must choose a <strong>different</strong> magic<br>
+        • One player should be the <strong>Healer</strong> (checkbox)<br>
+        • Stay close to teammates → your powers get stronger (synergy)<br>
+        • You can see each other’s blocky characters + name tags live</p>
+
+        <p><strong style="color:#fbbf24;">GET STRONGER (Competitive)</strong><br>
+        • Kill enemies and deal damage → earn XP<br>
+        • Level up = more HP, Mana, Speed, Damage<br>
+        • Live leaderboard shows Kills / Damage / Level<br>
+        • Compete with friends for top rank!</p>
+
+        <p><strong style="color:#fbbf24;">HOW TO BEAT IT</strong><br>
+        1. Pick different magics + one Healer<br>
+        2. Move together, don’t split too far<br>
+        3. Kill small demons first, then elites<br>
+        4. When an enemy summons, focus the summoner<br>
+        5. Heal when someone is low<br>
+        6. Survive longer = go deeper = win</p>
+
+        <p><strong style="color:#fbbf24;">GET STRONGER & COMPETE</strong><br>
+        Kill enemies → gain XP → Level Up.<br>
+        Each level = more HP, Mana, Speed, and Damage.<br>
+        Scoreboard shows who has most Kills and Damage. Friendly competition!</p>
+
+        <p style="opacity:0.75;font-size:0.85rem;">Tip: Lightning and Wind are fast. Earth is tanky. Water heals. Anti-Magic is strong against magic enemies.</p>
+      </div>
+
+      <button id="btn-howto-ok" class="btn primary" style="width:100%;margin-top:1.2rem;">GOT IT – LET’S GO</button>
+    </div>
+  </div>
+
+  <!-- Main Menu -->
+  <div id="main-menu" class="screen hidden">
+    <div class="menu-content">
+      <h1>ABYSS CLOVER</h1>
+      <p class="tagline">Retrieve the Absolute Grimoire</p>
+      <div class="menu-buttons">
+        <button id="btn-host" class="btn primary">HOST GAME (LAN)</button>
+        <button id="btn-join" class="btn">JOIN GAME</button>
+        <button id="btn-solo" class="btn">SOLO / PRACTICE</button>
+        <button id="btn-settings" class="btn secondary">SETTINGS</button>
+      </div>
+      <p class="hint">Same Wi-Fi • No internet needed after load</p>
+    </div>
+  </div>
+
+  <!-- Lobby / Character Select -->
+  <div id="lobby-screen" class="screen hidden">
+    <div class="lobby-panel">
+      <h2>Squad Assembly</h2>
+      <div id="room-info">
+        <p>Room Code: <span id="room-code" style="font-size:1.8rem;letter-spacing:0.25em;color:#fbbf24;">----</span></p>
+        <p id="host-status">You are the Host</p>
+      </div>
+      <div id="player-list"></div>
+      <div class="char-select">
+        <h3>Choose Your Magic (unique per player)</h3>
+        <div id="magic-grid" class="magic-grid"></div>
+        <div class="role-select">
+          <label>
+            <input type="checkbox" id="is-healer" />
+            I am the designated HEALER (only one recommended)
+          </label>
+        </div>
+        <div class="name-input">
+          <input type="text" id="player-name" placeholder="Your callsign" maxlength="12" value="Knight" />
+        </div>
+      </div>
+      <div class="lobby-actions">
+        <button id="btn-ready" class="btn primary">READY</button>
+        <button id="btn-start" class="btn primary hidden">START DESCENT</button>
+        <button id="btn-leave" class="btn secondary">LEAVE</button>
+      </div>
+      
+      <div id="webrtc-panel" style="margin-top:1.2rem;padding:1rem;background:rgba(0,0,0,0.4);border-radius:14px;border:1px solid rgba(192,132,252,0.3);">
+        <h4 style="margin:0 0 0.5rem;color:#c084fc;font-size:0.95rem;">Simple Connect (same Wi-Fi)</h4>
+        <p style="font-size:0.8rem;opacity:0.85;margin-bottom:0.6rem;line-height:1.45;">
+          <b>Host:</b> Share the short Room Code above.<br>
+          <b>Friends:</b> Type the code and press JOIN.<br>
+          Short codes only. No long passwords.
+        </p>
+        <div style="display:flex;gap:0.4rem;margin-bottom:0.55rem;">
+          <input id="short-join-code" maxlength="6" placeholder="4-5 LETTER CODE" style="flex:1;padding:0.55rem;background:#0a0a12;color:#fff;border:1px solid #7c3aed;border-radius:8px;font-size:1.15rem;letter-spacing:0.18em;text-transform:uppercase;text-align:center;font-weight:700;" />
+          <button id="btn-short-join" class="btn primary">JOIN</button>
+        </div>
+        <button id="btn-create-offer" class="btn secondary" style="width:100%;margin-bottom:0.35rem;font-size:0.78rem;">Advanced Connection (optional)</button>
+        <textarea id="offer-box" rows="3" placeholder="Long connection code appears here – copy & send to friend" style="width:100%;box-sizing:border-box;background:#0a0a12;color:#e8e0ff;border:1px solid #7c3aed;border-radius:8px;padding:0.5rem;font-size:0.65rem;margin-bottom:0.4rem;"></textarea>
+        <input id="answer-input" type="text" placeholder="Paste friend's answer code here (Host)" style="width:100%;box-sizing:border-box;padding:0.5rem;background:#0a0a12;color:#fff;border:1px solid #7c3aed;border-radius:8px;margin-bottom:0.4rem;" />
+        <button id="btn-accept-answer" class="btn" style="width:100%;">ACCEPT ANSWER (Host)</button>
+        <button id="btn-join-offer" class="btn secondary" style="width:100%;margin-top:0.4rem;">I HAVE A CODE – GENERATE ANSWER (Joiner)</button>
+        <p id="webrtc-status" style="font-size:0.75rem;opacity:0.65;margin-top:0.5rem;min-height:1.2em;"></p>
+      </div>
+
+      <div id="join-panel" class="hidden">
+        <p style="font-size:0.85rem;opacity:0.7;margin-bottom:0.5rem">For real multi-device on same Wi-Fi:</p>
+        <textarea id="offer-input" placeholder="Paste HOST OFFER here..." rows="3" style="width:100%;background:#0a0a12;color:#e8e0ff;border:1px solid #7c3aed;border-radius:8px;padding:0.5rem;font-size:0.75rem;"></textarea>
+        <button id="btn-join-confirm" class="btn" style="margin-top:0.5rem">CREATE ANSWER & CONNECT</button>
+        <p id="answer-box" class="hidden" style="margin-top:0.8rem;font-size:0.8rem;">
+          Your ANSWER (send back to host):<br>
+          <textarea id="answer-output" rows="3" readonly style="width:100%;background:#0a0a12;color:#34d399;border:1px solid #10b981;border-radius:8px;padding:0.5rem;font-size:0.7rem;"></textarea>
+          <button id="btn-copy-answer" class="btn secondary" style="margin-top:0.3rem">COPY ANSWER</button>
+        </p>
+      </div>
+      <div id="host-offer-panel" class="hidden" style="margin-top:1rem;">
+        <p style="font-size:0.85rem;opacity:0.7;">Share this OFFER with friends (same Wi-Fi):</p>
+        <textarea id="offer-output" rows="3" readonly style="width:100%;background:#0a0a12;color:#f472b6;border:1px solid #db2777;border-radius:8px;padding:0.5rem;font-size:0.7rem;"></textarea>
+        <button id="btn-copy-offer" class="btn secondary" style="margin-top:0.3rem">COPY OFFER</button>
+        <p style="font-size:0.8rem;margin-top:0.6rem;">Then paste their ANSWER below:</p>
+        <textarea id="answer-input" placeholder="Paste client ANSWER here..." rows="2" style="width:100%;background:#0a0a12;color:#e8e0ff;border:1px solid #7c3aed;border-radius:8px;padding:0.5rem;font-size:0.75rem;"></textarea>
+        <button id="btn-accept-answer" class="btn" style="margin-top:0.4rem">ACCEPT ANSWER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game HUD -->
+  <div id="game-hud" class="hidden">
+    <div id="top-bar">
+      <div id="squad-status"></div>
+      <div id="layer-info">Layer 1 – Hell's Gate</div>
+      <div id="gold-display">Gold: 0</div>
+      <div id="level-display" style="color:#fbbf24;font-weight:700;">Lv.1</div>
+      <div id="kills-display" style="color:#f87171;">Kills: 0</div>
+      <div id="dmg-display" style="color:#a78bfa;">Dmg: 0</div>
+    </div>
+    <div id="player-hud">
+      <div class="hp-bar"><div id="hp-fill"></div></div>
+      <div class="mana-bar"><div id="mana-fill"></div></div>
+      <div class="xp-bar" style="height:8px;background:rgba(0,0,0,0.45);border-radius:4px;overflow:hidden;border:1px solid rgba(251,191,36,0.4);">
+        <div id="xp-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#f59e0b,#fbbf24);transition:width 0.2s;"></div>
+      </div>
+      <div id="ability-bar">
+        <div class="ability" data-slot="0"><span>👊</span></div>
+        <div class="ability" data-slot="1"><span>🔥</span></div>
+        <div class="ability" data-slot="2"><span>💥</span></div>
+        <div class="ability" data-slot="3"><span>⚡</span></div>
+      </div>
+    </div>
+    <div id="ryo-banner" class="hidden"></div>
+    <div id="enemy-taunt" class="hidden"></div>
+    <div id="mobile-controls" class="hidden">
+      <div id="joystick-left" class="joystick"></div>
+      <div id="joystick-right" class="joystick"></div>
+      <div id="skill-buttons">
+        <button class="skill-btn" data-skill="0" title="Basic Attack / Punch">👊</button>
+        <button class="skill-btn" data-skill="1" title="Skill 1">🔥</button>
+        <button class="skill-btn" data-skill="2" title="Skill 2">💥</button>
+        <button class="skill-btn" data-skill="3" title="Ultimate">⚡</button>
+        <button class="skill-btn jump-btn" data-skill="jump" title="Jump">⬆</button>
+      </div>
+    </div>
+    <div id="controls-hint" style="position:absolute;bottom:0.4rem;left:50%;transform:translateX(-50%);font-size:0.7rem;opacity:0.55;pointer-events:none;white-space:nowrap;">
+      Move: WASD / Stick &nbsp;|&nbsp; 👊🔥💥⚡ Powers &nbsp;|&nbsp; Space/⬆ Jump &nbsp;|&nbsp; Blue = Mana
+    </div>
+    <div id="scoreboard" style="position:absolute;top:3.2rem;left:0.6rem;background:rgba(0,0,0,0.55);border:1px solid rgba(255,180,80,0.35);border-radius:10px;padding:0.45rem 0.7rem;font-size:0.75rem;min-width:120px;pointer-events:none;">
+      <div style="color:#fbbf24;font-weight:700;margin-bottom:0.25rem;">SCOREBOARD</div>
+      <div id="score-list">—</div>
+    </div>
+    <div id="camera-toggle">
+      <button id="btn-cam-iso">ISO</button>
+      <button id="btn-cam-third">3RD</button>
+    </div>
+
+    <!-- Freedom & Economy -->
+    <div id="action-buttons" style="position:absolute;bottom:5.5rem;right:0.6rem;display:flex;flex-direction:column;gap:0.35rem;z-index:30;">
+      <button id="btn-descend" class="btn primary" style="font-size:0.78rem;padding:0.4rem 0.7rem;display:none;">⬇ DESCEND</button>
+      <button id="btn-shop" class="btn secondary" style="font-size:0.78rem;padding:0.4rem 0.7rem;">🛒 SHOP</button>
+    </div>
+
+    <div id="shop-panel" class="hidden" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,5,15,0.95);border:2px solid #fbbf24;border-radius:14px;padding:1.2rem;z-index:60;min-width:270px;text-align:center;">
+      <h3 style="color:#fbbf24;margin:0 0 0.7rem;">ABYSS SHOP</h3>
+      <p style="font-size:0.85rem;opacity:0.9;margin-bottom:0.7rem;">Team Gold: <span id="shop-gold">0</span></p>
+      <button class="btn shop-item" data-item="heal" style="width:100%;margin:0.22rem 0;">❤️ Heal Team (40g)</button>
+      <button class="btn shop-item" data-item="mana" style="width:100%;margin:0.22rem 0;">💧 Full Mana (30g)</button>
+      <button class="btn shop-item" data-item="damage" style="width:100%;margin:0.22rem 0;">⚔️ +Damage 45s (55g)</button>
+      <button class="btn shop-item" data-item="speed" style="width:100%;margin:0.22rem 0;">💨 +Speed (50g)</button>
+      <button class="btn shop-item" data-item="revive" style="width:100%;margin:0.22rem 0;">✨ Revive Ally (80g)</button>
+      <button class="btn shop-item" data-item="grimoire" style="width:100%;margin:0.22rem 0;">📜 Grimoire Fragment (120g)</button>
+      <button id="btn-close-shop" class="btn secondary" style="width:100%;margin-top:0.65rem;">CLOSE</button>
+    </div>
+
+    <div id="pause-menu" class="hidden">
+      <button id="btn-resume">RESUME</button>
+      <button id="btn-settings-ingame">SETTINGS</button>
+      <button id="btn-quit">QUIT TO MENU</button>
+    </div>
+  </div>
+
+  <!-- Game Over -->
+  <div id="game-over" class="screen hidden">
+    <h1>SQUAD WIPED</h1>
+    <p>The Abyss claims another group...</p>
+    <p>All must restart the descent.</p>
+    <button id="btn-retry" class="btn primary">TRY AGAIN</button>
+    <button id="btn-menu" class="btn">MAIN MENU</button>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Settings</h2>
+      <label>Master Volume <input type="range" id="vol-master" min="0" max="1" step="0.05" value="0.7" /></label>
+      <label>SFX Volume <input type="range" id="vol-sfx" min="0" max="1" step="0.05" value="0.8" /></label>
+      <label>Voice / Taunt Volume <input type="range" id="vol-voice" min="0" max="1" step="0.05" value="0.9" /></label>
+      <label>Camera Sensitivity <input type="range" id="sens" min="0.2" max="3" step="0.1" value="1" /></label>
+      <label>Preferred Camera
+        <select id="pref-cam">
+          <option value="iso">Isometric</option>
+          <option value="third">Third-Person</option>
+        </select>
+      </label>
+      <button id="btn-close-settings" class="btn">CLOSE</button>
+    </div>
+  </div>
+
+  <canvas id="game-canvas"></canvas>
+
+  <script src="js/audio.js"></script>
+  <script src="js/network.js"></script>
+  <script src="js/magics.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
